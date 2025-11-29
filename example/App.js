@@ -93,6 +93,7 @@ const App = () => {
                         tileElevations={10}
                         tileGap={10}
                         maxHorizontal={4}
+                        responsive={true}
                     />
                 </div>
             </div>
@@ -111,6 +112,7 @@ const App = () => {
                         tileElevations={8}
                         tileGap={8}
                         maxHorizontal={5}
+                        responsive={true}
                     />
                 </div>
             </div>

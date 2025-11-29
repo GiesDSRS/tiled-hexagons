@@ -1,27 +1,65 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import assign from 'assign-deep'
 import Hexagon from './hexagon'
 
 const TiledHexagons = (props) => {
-	const { tiles, tileSideLengths, tileBorderRadii, tileElevations, tileStrokeWidths, tileGap, maxHorizontal, tileStyles, tileTextStyles } = props
+	const { tiles, tileSideLengths, tileBorderRadii, tileElevations, tileStrokeWidths, tileGap, maxHorizontal, tileStyles, tileTextStyles, responsive } = props
+	const containerRef = useRef(null)
+	const [responsiveMaxHorizontal, setResponsiveMaxHorizontal] = useState(maxHorizontal)
+	const [responsiveSideLength, setResponsiveSideLength] = useState(tileSideLengths)
+
+	useEffect(() => {
+		if (!responsive) return
+
+		const updateLayout = () => {
+			if (!containerRef.current) return
+			
+			const containerWidth = containerRef.current.parentElement?.offsetWidth || window.innerWidth
+			const singleTileWidth = Math.sqrt(3) * tileSideLengths
+			const totalTileWidth = singleTileWidth + tileGap
+			
+			// Calculate how many hexagons can fit horizontally
+			const calculatedMaxHorizontal = Math.max(1, Math.floor(containerWidth / totalTileWidth))
+			
+			// On smaller screens, also reduce the hexagon size
+			if (containerWidth < 768) {
+				const scaleFactor = containerWidth / 768
+				setResponsiveSideLength(Math.max(40, tileSideLengths * scaleFactor))
+				setResponsiveMaxHorizontal(Math.min(calculatedMaxHorizontal, 3))
+			} else if (containerWidth < 1024) {
+				setResponsiveSideLength(tileSideLengths * 0.9)
+				setResponsiveMaxHorizontal(Math.min(calculatedMaxHorizontal, maxHorizontal))
+			} else {
+				setResponsiveSideLength(tileSideLengths)
+				setResponsiveMaxHorizontal(maxHorizontal)
+			}
+		}
+
+		updateLayout()
+		window.addEventListener('resize', updateLayout)
+		return () => window.removeEventListener('resize', updateLayout)
+	}, [responsive, tileSideLengths, tileGap, maxHorizontal])
+
+	const effectiveMaxHorizontal = responsive ? responsiveMaxHorizontal : maxHorizontal
+	const effectiveSideLength = responsive ? responsiveSideLength : tileSideLengths
 	const tileCount = tiles.length
 
-	const singleTileWidth = Math.sqrt(3) * tileSideLengths
-	const singleTileHeight = 2 * tileSideLengths + tileElevations
+	const singleTileWidth = Math.sqrt(3) * effectiveSideLength
+	const singleTileHeight = 2 * effectiveSideLength + tileElevations
 
-	const columnCount = getColumnCount(tileCount, maxHorizontal)
+	const columnCount = getColumnCount(tileCount, effectiveMaxHorizontal)
 
 	const XConst = singleTileWidth + tileGap
-	const YConst = 3 * tileSideLengths / 2 + tileElevations + tileGap
+	const YConst = 3 * effectiveSideLength / 2 + tileElevations + tileGap
 
-	const fullWidth = XConst * (maxHorizontal == 1 ? 1.5 : Math.min(tileCount, maxHorizontal))
+	const fullWidth = XConst * (effectiveMaxHorizontal == 1 ? 1.5 : Math.min(tileCount, effectiveMaxHorizontal))
 	const fullHeight = (singleTileHeight + tileGap) + ((columnCount - 1) * YConst)
 
-	const ranges = getRanges(columnCount, maxHorizontal)
+	const ranges = getRanges(columnCount, effectiveMaxHorizontal)
 
 	return (
-		<svg width={fullWidth} height={fullHeight}>
+		<svg ref={containerRef} width={fullWidth} height={fullHeight} style={{ maxWidth: '100%', height: 'auto' }}>
 			{tiles.map(({fill, stroke, shadow, img, text, textStyle, styles, href, target, onClick}, i) => {
 
 				const { XMultiplier, YMultiplier } = getMultipliers(i, ranges)
@@ -32,7 +70,7 @@ const TiledHexagons = (props) => {
 				return (
 					<svg key={i} x={XMultiplier * XConst} y={YMultiplier * YConst} width={singleTileWidth} height={singleTileHeight}>
 						<Hexagon
-							sideLength={tileSideLengths}
+							sideLength={effectiveSideLength}
 							borderRadius={tileBorderRadii}
 							elevation={tileElevations}
 							img={img}
@@ -57,7 +95,7 @@ export default TiledHexagons
 
 TiledHexagons.defaultProps = {
 	tiles: [],
-	tileSideLengths: Hexagon.defaultProps.width,
+	tileSideLengths: Hexagon.defaultProps.sideLength,
 	tileBorderRadii: Hexagon.defaultProps.borderRadius,
 	tileElevations: Hexagon.defaultProps.elevation,
 	tileStrokeWidths: Hexagon.defaultProps.strokeWidth,
@@ -68,7 +106,8 @@ TiledHexagons.defaultProps = {
 		active: {}
 	},
 	tileTextStyles: {},
-	maxHorizontal: 5
+	maxHorizontal: 5,
+	responsive: false
 }
 
 TiledHexagons.propTypes = {
@@ -99,7 +138,8 @@ TiledHexagons.propTypes = {
 		active: PropTypes.object
 	}),
 	tileTextStyles: PropTypes.object,
-	maxHorizontal: PropTypes.number
+	maxHorizontal: PropTypes.number,
+	responsive: PropTypes.bool
 }
 
 const getRanges = (columnCount, maxHorizontal) => {
