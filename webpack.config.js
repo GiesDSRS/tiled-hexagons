@@ -5,8 +5,9 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
-    library: { type: 'commonjs2' }
+    filename: 'index.umd.js',
+    library: { name: 'TiledHexagons', type: 'umd' },
+    globalObject: 'this'
   },
   module: {
     rules: [
@@ -26,7 +27,17 @@ module.exports = {
     extensions: ['.js', '.jsx']
   },
   externals: {
-    react: { commonjs: 'react' },
-    'react-dom': { commonjs: 'react-dom' }
+    react: {
+      commonjs: 'react',
+      commonjs2: 'react',
+      amd: 'react',
+      root: 'React'
+    },
+    'react-dom': {
+      commonjs: 'react-dom',
+      commonjs2: 'react-dom',
+      amd: 'react-dom',
+      root: 'ReactDOM'
+    }
   }
 }
