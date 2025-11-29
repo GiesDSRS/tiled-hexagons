@@ -19,7 +19,7 @@ A React component library for creating beautiful, responsive tiled hexagonal lay
 Since this is a GitHub-only package, install it directly from the repository:
 
 ```bash
-npm install github:yourusername/tiled-hexagons
+npm install github:GiesDSRS/tiled-hexagons
 ```
 
 Or add to your `package.json`:
@@ -27,7 +27,7 @@ Or add to your `package.json`:
 ```json
 {
   "dependencies": {
-    "tiled-hexagons": "github:yourusername/tiled-hexagons"
+    "tiled-hexagons": "github:GiesDSRS/tiled-hexagons"
   }
 }
 ```
