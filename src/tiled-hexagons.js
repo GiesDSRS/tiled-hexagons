@@ -59,8 +59,15 @@ const TiledHexagons = (props) => {
 	const ranges = getRanges(columnCount, effectiveMaxHorizontal)
 
 	return (
-		<svg ref={containerRef} width={fullWidth} height={fullHeight} style={{ maxWidth: '100%', height: 'auto' }}>
-			{tiles.map(({fill, stroke, shadow, img, text, textStyle, styles, href, target, onClick}, i) => {
+		<div 
+			ref={containerRef} 
+			style={{ 
+				position: 'relative', 
+				width: `${fullWidth}px`, 
+				height: `${fullHeight}px`, 
+				maxWidth: '100%'
+			}}>
+			{tiles.map(({fill, stroke, shadow, img, text, textStyle, styles, href, target, onClick, learnMoreText, learnMoreHref}, i) => {
 
 				const { XMultiplier, YMultiplier } = getMultipliers(i, ranges)
 
@@ -68,7 +75,16 @@ const TiledHexagons = (props) => {
 				const mergedStyles = assign({}, JSON.parse(JSON.stringify(tileStyles)), styles)
 
 				return (
-					<svg key={i} x={XMultiplier * XConst} y={YMultiplier * YConst} width={singleTileWidth} height={singleTileHeight}>
+					<div 
+						key={i} 
+						style={{
+							position: 'absolute',
+							left: `${XMultiplier * XConst}px`,
+							top: `${YMultiplier * YConst}px`,
+							width: `${singleTileWidth}px`,
+							height: `${singleTileHeight}px`,
+							pointerEvents: 'auto'
+						}}>
 						<Hexagon
 							sideLength={effectiveSideLength}
 							borderRadius={tileBorderRadii}
@@ -84,10 +100,13 @@ const TiledHexagons = (props) => {
 							href={href}
 							target={target}
 							onClick={onClick}
+							learnMoreText={learnMoreText}
+							learnMoreHref={learnMoreHref}
 						/>
-					</svg>)	
+					</div>
+				)	
 			})}
-		</svg>
+		</div>
 	)
 }
 
@@ -125,7 +144,9 @@ TiledHexagons.propTypes = {
 		}),
 		href: PropTypes.string,
 		target: PropTypes.string,
-		onClick: PropTypes.func
+		onClick: PropTypes.func,
+		learnMoreText: PropTypes.string,
+		learnMoreHref: PropTypes.string
 	})),
 	tileSideLengths: PropTypes.number,
 	tileBorderRadii: PropTypes.number,

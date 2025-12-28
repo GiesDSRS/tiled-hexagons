@@ -18,7 +18,7 @@ const elevationStyleActive = (elevation) => {
 }
 
 const Hexagon = (props) => {
-	const { sideLength, borderRadius, elevation, shadow, img, text, textStyle, href, target, onClick, fill, stroke, strokeWidth, styles } = props
+	const { sideLength, borderRadius, elevation, shadow, img, text, textStyle, href, target, onClick, fill, stroke, strokeWidth, styles, learnMoreText, learnMoreHref } = props
 	
 	const thHexagonStyleBase = useMemo(() => ({
 		userSelect: 'none',
@@ -26,7 +26,7 @@ const Hexagon = (props) => {
 		strokeWidth: `${strokeWidth}px`, 
 		transition: 'all 0.2s ease',
 	}), [stroke, strokeWidth])
-
+	
 	const thHexagonStyleNormal = useMemo(() => 
 		Object.assign({}, thHexagonStyleBase, styles.normal),
 		[thHexagonStyleBase, styles.normal]
@@ -41,17 +41,56 @@ const Hexagon = (props) => {
 		Object.assign({}, thHexagonStyleBase, elevation ? elevationStyleActive(elevation) : {}, styles.active),
 		[thHexagonStyleBase, elevation, styles.active]
 	)
-
+	
 	const [thHexagonStyle, setThHexagonStyle] = useState(thHexagonStyleNormal)
-
-	const width = Math.sqrt(3) * sideLength
-	const height = 2 * sideLength + elevation
-
+	const [showLearnMore, setShowLearnMore] = useState(false)
+	
+	const width = useMemo(() => Math.sqrt(3) * sideLength, [sideLength])
+	const height = useMemo(() => 2 * sideLength, [sideLength])
 	const fontSizeOffset = textStyle.fontSize ? 0.3 * parseInt(textStyle.fontSize) : 0
+	
+	// Memoize the hexagon path
+	const hexagonPath = useMemo(() => generateHexSVG(sideLength, borderRadius), [sideLength, borderRadius])
+	
+	// Unique mask ID for this hexagon instance
+	const maskId = useMemo(() => `hex-mask-${Math.random().toString(36).substr(2, 9)}`, [])
+	
+	// Simple rectangle for banner - the mask will cut it to shape
+	const bannerRect = useMemo(() => {
+		const bannerStartY = height * 0.70
+		return {
+			x: 0,
+			y: bannerStartY,
+			width: width,
+			height: height - bannerStartY
+		}
+	}, [width, height])
+	
+	// Text position
+	const bannerTextY = useMemo(() => height * 0.78, [height])
+	
+	const handleMouseOver = () => {
+		setThHexagonStyle(thHexagonStyleHover)
+		if (learnMoreHref) {
+			setShowLearnMore(true)
+		}
+	}
+	
+	const handleMouseLeave = () => {
+		setThHexagonStyle(thHexagonStyleNormal)
+		setShowLearnMore(false)
+	}
+	
+	const handleBannerClick = (e) => {
+		if (learnMoreHref) {
+			e.stopPropagation()
+			window.open(learnMoreHref, target || '_blank')
+		}
+	}
 	
 	const hexagon = (
 		<React.Fragment>
-			<path fill={fill} d={generateHexSVG(sideLength, borderRadius)} />
+			<path fill={fill} d={hexagonPath} />
 			<image href={img} width={0.7 * width} height={0.7 * height} x={0.15 * width} y={0.12 * height} />
 			<text fill="#bbb" strokeWidth="0" style={textStyle}>
 				<tspan x={width/2} y={height/2 + fontSizeOffset} textAnchor="middle">
@@ -60,23 +99,72 @@ const Hexagon = (props) => {
 			</text>
 		</React.Fragment>
 	)
-
+	
 	return (
-		<svg
-			viewBox={`0 0 ${width} ${height}`}
-			width={width}
-			height={height}>
-			<svg y={elevation}><path fill={shadow} d={generateHexSVG(sideLength, borderRadius)} /></svg>
-			<g
-				style={thHexagonStyle}
-				onMouseOver={() => setThHexagonStyle(thHexagonStyleHover)}
-				onMouseLeave={() => setThHexagonStyle(thHexagonStyleNormal)}
-				onMouseDown={() => setThHexagonStyle(thHexagonStyleActive)}
-				onMouseUp={() => setThHexagonStyle(thHexagonStyleHover)}
-				onClick={onClick}>
-				{!href ? hexagon : <a href={href} target={target || '_blank'}>{hexagon}</a>}
-			</g>
-		</svg>
+		<div 
+			style={{ 
+				position: 'relative', 
+				display: 'inline-block', 
+				width: `${width}px`, 
+				height: `${height + elevation}px` 
+			}}
+			onMouseEnter={handleMouseOver}
+			onMouseLeave={handleMouseLeave}>
+			<svg
+				viewBox={`0 0 ${width} ${height + elevation}`}
+				width={width}
+				height={height + elevation}>
+				
+				{/* Define mask using exact hexagon shape */}
+				<defs>
+					<mask id={maskId}>
+						<path d={hexagonPath} fill="white" />
+					</mask>
+				</defs>
+				
+				<svg y={elevation}>
+					<path fill={shadow} d={hexagonPath} />
+				</svg>
+				
+				<g
+					style={thHexagonStyle}
+					onMouseDown={() => setThHexagonStyle(thHexagonStyleActive)}
+					onMouseUp={() => setThHexagonStyle(thHexagonStyleHover)}
+					onClick={onClick}>
+					{!href ? hexagon : <a href={href} target={target || '_blank'}>{hexagon}</a>}
+				</g>
+				
+				{/* Learn More banner - simple rectangle with mask */}
+				{learnMoreHref && showLearnMore && (
+					<g 
+						mask={`url(#${maskId})`}
+						onClick={handleBannerClick}
+						style={{ cursor: 'pointer' }}>
+						<rect 
+							x={bannerRect.x}
+							y={bannerRect.y}
+							width={bannerRect.width}
+							height={bannerRect.height}
+							fill="rgba(0, 0, 0, 0.75)"
+						/>
+						<text 
+							x={width / 2}
+							y={bannerTextY}
+							textAnchor="middle"
+							dominantBaseline="middle"
+							style={{
+								fill: '#fff',
+								fontSize: `${Math.max(10, sideLength * 0.13)}px`,
+								fontWeight: 'bold',
+								pointerEvents: 'none',
+								userSelect: 'none'
+							}}>
+							{learnMoreText || 'Learn More'}
+						</text>
+					</g>
+				)}
+			</svg>
+		</div>
 	)
 }
 
@@ -100,7 +188,9 @@ Hexagon.defaultProps = {
 	},
 	href: null,
 	target: null,
-	onClick: () => {}
+	onClick: () => {},
+	learnMoreText: 'Learn More',
+	learnMoreHref: null
 }
 
 Hexagon.propTypes = {
@@ -121,5 +211,7 @@ Hexagon.propTypes = {
 	}),
 	href: PropTypes.string,
 	target: PropTypes.string,
-	onClick: PropTypes.func
+	onClick: PropTypes.func,
+	learnMoreText: PropTypes.string,
+	learnMoreHref: PropTypes.string
 }

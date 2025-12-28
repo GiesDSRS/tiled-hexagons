@@ -9,14 +9,19 @@ const App = () => {
             text: 'React',
             textStyle: { fontSize: '24px', fill: '#282c34', fontWeight: 'bold' },
             href: 'https://react.dev',
-            shadow: '#4fa8c5'
+            shadow: '#4fa8c5',
+            // Example with Learn More enabled
+            learnMoreHref: 'https://react.dev/learn',
+            learnMoreText: 'Documentation'
         },
         {
             fill: '#3178C6',
             text: 'TypeScript',
             textStyle: { fontSize: '20px', fill: 'white', fontWeight: 'bold' },
             href: 'https://www.typescriptlang.org',
-            shadow: '#2563a8'
+            shadow: '#2563a8',
+            // Example with Learn More (default text)
+            learnMoreHref: 'https://www.typescriptlang.org/docs/'
         },
         {
             fill: '#68A063',
@@ -24,6 +29,7 @@ const App = () => {
             textStyle: { fontSize: '22px', fill: 'white', fontWeight: 'bold' },
             href: 'https://nodejs.org',
             shadow: '#53804f'
+            // No Learn More - works as before
         },
         {
             fill: '#764ABC',
@@ -31,13 +37,16 @@ const App = () => {
             textStyle: { fontSize: '24px', fill: 'white', fontWeight: 'bold' },
             href: 'https://redux.js.org',
             shadow: '#5e3a96'
+            // No Learn More - works as before
         },
         {
             fill: '#E10098',
             text: 'GraphQL',
             textStyle: { fontSize: '22px', fill: 'white', fontWeight: 'bold' },
             href: 'https://graphql.org',
-            shadow: '#b3007a'
+            shadow: '#b3007a',
+            learnMoreHref: 'https://graphql.org/learn/',
+            learnMoreText: 'Get Started'
         },
         {
             fill: '#DD0031',
@@ -83,7 +92,7 @@ const App = () => {
                 <h2>🎨 Technology Stack</h2>
                 <p>
                     Click on any hexagon to visit the technology's official website. 
-                    Hover over them to see the interactive effects!
+                    Hover over hexagons with "Learn More" labels to see additional resources!
                 </p>
                 <div className="hexagon-container">
                     <TiledHexagons
@@ -132,6 +141,8 @@ const App = () => {
                         text="Click Me!"
                         textStyle={{ fontSize: '20px', fill: 'white', fontWeight: 'bold' }}
                         onClick={() => alert('Hexagon clicked!')}
+                        learnMoreHref="https://github.com/GiesDSRS/tiled-hexagons"
+                        learnMoreText="View on GitHub"
                     />
                 </div>
             </div>
@@ -140,6 +151,7 @@ const App = () => {
                 <h2>📝 Usage Example</h2>
                 <p>
                     This package has been updated to work with React 18+ using modern hooks and functional components.
+                    The new optional "Learn More" feature lets you add secondary links to hexagons.
                 </p>
                 <pre style={{
                     background: '#282c34',
@@ -156,9 +168,17 @@ const tiles = [
     fill: '#61DAFB',
     text: 'React',
     textStyle: { fontSize: '24px', fill: 'white' },
-    href: 'https://react.dev'
+    href: 'https://react.dev',
+    // Optional: Add Learn More link
+    learnMoreHref: 'https://react.dev/learn',
+    learnMoreText: 'Documentation' // Optional, defaults to "Learn More"
   },
-  // ... more tiles
+  {
+    fill: '#3178C6',
+    text: 'TypeScript',
+    href: 'https://www.typescriptlang.org'
+    // No learnMoreHref = no Learn More label (backward compatible)
+  }
 ]
 
 <TiledHexagons
